@@ -65,6 +65,7 @@ newnum(struct pcdata *pp, double d)
 	}
 	a->nodetype = 'K';
 	a->number = d;
+	printf("create num:%f\n", d);
 	return (struct ast *)a;
 }
 

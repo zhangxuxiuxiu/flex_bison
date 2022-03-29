@@ -44,6 +44,8 @@ EXP ([Ee][-+]?[0-9]+)
 "log" { yylval->fn = B_log; return FUNC; }
 "print" { yylval->fn = B_print; return FUNC; }
  /* names */
+"like" {yylval->d = 3.f; return NUMBER;}
+"follow" {yylval->d = 5.f; return NUMBER;}
 [a-zA-Z][a-zA-Z0-9]* { yylval->s = lookup(pp, yytext); return NAME; }
 [0-9]+"."[0-9]*{EXP}? |
 "."?[0-9]+{EXP}? { yylval->d = atof(yytext); return NUMBER; }
