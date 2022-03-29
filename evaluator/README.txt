@@ -2,3 +2,5 @@
 2) read from string(X), or file(Y) or stdin(Y)
 	delete buffer(X)
 3) evaluate expression on user data
+
+ref: https://www.techtalk7.com/string-input-to-flex-lexer/
