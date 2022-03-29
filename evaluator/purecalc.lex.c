@@ -975,7 +975,7 @@ YY_RULE_SETUP
 case 32:
 YY_RULE_SETUP
 #line 52 "purecalc.l"
-printf("c> "); /* ignore line continuation */
+{ return EOL; } /*printf("c> ");  ignore line continuation */
 	YY_BREAK
 case 33:
 /* rule 33 can match eol */
@@ -988,16 +988,15 @@ YY_RULE_SETUP
 #line 54 "purecalc.l"
 { yyerror(pp, "Mystery character %c\n", *yytext); }
 	YY_BREAK
-case YY_STATE_EOF(INITIAL):
-#line 55 "purecalc.l"
-{ exit(0); }
-	YY_BREAK
+/*<<EOF>> { printf("meet eof\n"); exit(0); }*/
 case 35:
 YY_RULE_SETUP
 #line 56 "purecalc.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1001 "purecalc.lex.c"
+#line 998 "purecalc.lex.c"
+case YY_STATE_EOF(INITIAL):
+	yyterminate();
 
 	case YY_END_OF_BUFFER:
 		{

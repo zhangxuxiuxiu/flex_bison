@@ -49,8 +49,8 @@ EXP ([Ee][-+]?[0-9]+)
 "."?[0-9]+{EXP}? { yylval->d = atof(yytext); return NUMBER; }
 "//".* 
 [ \t] /* ignore whitespace */ 
-\\n printf("c> "); /* ignore line continuation */
+\\n { return EOL; } /*printf("c> ");  ignore line continuation */
 "\n" { return EOL; }
 . { yyerror(pp, "Mystery character %c\n", *yytext); }
-<<EOF>> { exit(0); }
+ /*<<EOF>> { printf("meet eof\n"); exit(0); }*/
 %%

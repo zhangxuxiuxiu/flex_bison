@@ -38,7 +38,7 @@
 %%
 
 calc: /* nothing */ EOL { pp->ast = NULL; YYACCEPT; }
- | stmt EOL { pp->ast = $1; YYACCEPT; }
+ | stmt  { pp->ast = $1; YYACCEPT; }
  | LET NAME '(' symlist ')' '=' list EOL {
  dodef(pp, $2, $4, $7);
  printf("%d: Defined %s\n", yyget_lineno(pp->scaninfo),
@@ -49,7 +49,7 @@ calc: /* nothing */ EOL { pp->ast = NULL; YYACCEPT; }
 stmt: IF exp THEN list { $$ = newflow(pp, 'I', $2, $4, NULL); }
  | IF exp THEN list ELSE list { $$ = newflow(pp, 'I', $2, $4, $6); }
  | WHILE exp DO list { $$ = newflow(pp, 'W', $2, $4, NULL); }
- | exp
+ | exp 
 ;
 
 list: /* nothing */ { $$ = NULL; }
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]){
 	}
 	yy_switch_to_buffer(bp, p.scaninfo);
 
-	for(;;) {
+//	for(;;) {
 		printf("> "); 
 		yyparse(&p);
 		if(p.ast) {
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]){
 		} else {
 			printf("no ast\n");
 		}
-	}
+//	}
 
 	yy_delete_buffer(bp,  p.scaninfo);
 	if( f != NULL) { fclose(f); }
