@@ -25,6 +25,7 @@
 %token <d> NUMBER
 %token <s> NAME
 %token <fn> FUNC
+%token <fp> FPTR
 %token EOL
 %token IF THEN ELSE WHILE DO LET
 %nonassoc <fn> CMP
@@ -69,6 +70,7 @@ exp: exp CMP exp { $$ = newcmp(pp, $2, $1, $3); }
  | '(' exp ')' { $$ = $2; }
  | '-' exp %prec UMINUS { $$ = newast(pp, 'M', $2, NULL); }
  | NUMBER { $$ = newnum(pp, $1); }
+ | FPTR { $$ = newfptr(pp, $1); }
  | FUNC '(' explist ')' { $$ = newfunc(pp, $1, $3); }
  | NAME { $$ = newref(pp, $1); }
  | NAME '=' exp { $$ = newasgn(pp, $1, $3); }

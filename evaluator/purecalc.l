@@ -43,6 +43,9 @@ EXP ([Ee][-+]?[0-9]+)
 "exp" { yylval->fn = B_exp; return FUNC; }
 "log" { yylval->fn = B_log; return FUNC; }
 "print" { yylval->fn = B_print; return FUNC; }
+"like" { yylval->fp = $f_like; return FPTR; }
+"comment" { yylval->fp = $f_comment; return FPTR; }
+"follow" { yylval->fp = $f_follow; return FPTR; }
  /* names */
 "like" {yylval->d = 3.f; return NUMBER;}
 "follow" {yylval->d = 5.f; return NUMBER;}
