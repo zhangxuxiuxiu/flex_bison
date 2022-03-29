@@ -26,6 +26,12 @@ struct symlist {
  struct symlist *next;
 };
 
+struct user_score{ 
+	double like;
+	double comment;
+	double follow;
+};
+
 struct symlist *newsymlist(struct pcdata *, struct symbol *sym, struct symlist *next);
 
 void symlistfree(struct pcdata *, struct symlist *sl);
@@ -84,6 +90,11 @@ struct numval {
 	double number;
 };
 
+struct fnptr {
+	int nodetype; /* type P */
+	double (*fp)(struct user_score*);
+};
+
 struct symref {
 	int nodetype; /* type N */
 	struct symbol *s;
@@ -110,6 +121,8 @@ struct ast *newasgn(struct pcdata *, struct symbol *s, struct ast *v);
 
 struct ast *newnum(struct pcdata *, double d);
 
+struct ast *newfptr(struct pcdata *, double(*p)(struct user_score*));
+
 struct ast *newflow(struct pcdata *, int nodetype, struct ast *cond, struct ast *tl, 
  struct ast *tr);
 
@@ -117,7 +130,7 @@ struct ast *newflow(struct pcdata *, int nodetype, struct ast *cond, struct ast 
 void dodef(struct pcdata *, struct symbol *name, struct symlist *syms, struct ast *stmts);
 
 /* evaluate an AST */
-double eval(struct pcdata *, struct ast *);
+double eval(struct pcdata *, struct ast *, struct user_score*);
 
 /* delete and free an AST */
 void treefree(struct pcdata *, struct ast *);
@@ -129,3 +142,8 @@ void yyerror(struct pcdata *pp, char *s, ...);
 int build_ast(struct pcdata* p, YY_BUFFER_STATE* bp, const char*);
 void free_ast(struct pcdata* p, YY_BUFFER_STATE bp);
 
+/* keyword function*/
+
+double eval_like(struct user_score* u);
+double eval_comment(struct user_score* u);
+double eval_follow(struct user_score* u);

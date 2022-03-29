@@ -13,6 +13,7 @@
  struct symbol *s; /* which symbol */
  struct symlist *sl;
  int fn; /* which function */
+ double (*fp)(struct user_score*);
 }
 
 %{

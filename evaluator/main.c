@@ -5,15 +5,26 @@
 #include <stdio.h>
 
 int main(int argc, char* argv[]){
-	struct pcdata p = { NULL, 0, NULL };
-	YY_BUFFER_STATE bp;
-
-	if(build_ast(&p, &bp, argv[1])){
-		fprintf(stderr, "failed in building ast\n");
+	if(argc==1){
+		fprintf(stderr, "Usage: %s \"like+follow/comment\" \"2*like+3*comment+4*follow-0.5\" \n", argv[0]);
 		return -1;
 	}
-	printf( "%s = %f\n", argv[1], eval(&p, p.ast));
-	free_ast(&p, bp);
+
+	struct pcdata p = { NULL, 0, NULL };
+	YY_BUFFER_STATE bp;
+	struct user_score user={2,3,4};
+	printf("like->%f, comment->%f, follow->%f\n", user.like, user.comment, user.follow);
+	for(int i=1; i<argc; ++i){
+		if(build_ast(&p, &bp, argv[i])){
+			fprintf(stderr, "failed in building ast\n");
+			return -1;
+		}
+		printf( "%s = %f\n", argv[i], eval(&p, p.ast, &user));
+		free_ast(&p, bp);
+	}
+
+
+
 
 /*
 	if(yylex_init_extra(&p, &p.scaninfo)) {
