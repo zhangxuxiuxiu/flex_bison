@@ -85,50 +85,25 @@ symlist: NAME { $$ = newsymlist(pp, $1, NULL); }
 
 %%
 
-int main(int argc, char* argv[]){
-	struct pcdata p = { NULL, 0, NULL };
-	/* set up scanner */
-	if(yylex_init_extra(&p, &p.scaninfo)) {
+int build_ast(struct pcdata* p, YY_BUFFER_STATE* bp, const char* stmt){
+	if(yylex_init_extra(p, &(p->scaninfo))) {
 		perror("init alloc failed");
 		return 1;
 	}
-	/* allocate and zero out the symbol table */
-	if(!(p.symtab = calloc(NHASH, sizeof(struct symbol)))) {
+	if(!(p->symtab = calloc(NHASH, sizeof(struct symbol)))) {
 		perror("sym alloc failed");
 		return 1;
 	}
+	*bp = yy_scan_string(stmt,  p->scaninfo);
+	yy_switch_to_buffer(*bp, p->scaninfo);
+	int r = yyparse(p);
+	return r? r : (p->ast ? 0 : -1);
+}
 
-	YY_BUFFER_STATE bp;
-	FILE* f=NULL;
-	if( argc==1 || (argc==2 && (0==strcmp(argv[1],"-f"))) || (argc==3 && (0==strcmp(argv[1],"-f"))  && (0==strcmp(argv[2],"-"))) ){	
-		bp = yy_create_buffer(stdin, YY_BUF_SIZE,  p.scaninfo); 
-	} else if(argc != 3 || 0!=strcmp(argv[1],"-f") && 0!=strcmp(argv[1],"-s")) {
-		fprintf(stderr, "Usage: %s (-s str) (-f (file|-))", argv[0]);
-		return -1;
-	} else if( argv[1][1] == 'f' ){
-		f = fopen( argv[2], "r");
-		bp = yy_create_buffer(f, YY_BUF_SIZE,  p.scaninfo); 
-	} else {
-		bp = yy_scan_string(argv[2],  p.scaninfo);
-	}
-	yy_switch_to_buffer(bp, p.scaninfo);
-
-//	for(;;) {
-		printf("> "); 
-		yyparse(&p);
-		if(p.ast) {
-			printf("= %4.4g\n", eval(&p, p.ast));
-			treefree(&p, p.ast);
-			p.ast = 0;
-		} else {
-			printf("no ast\n");
-		}
-//	}
-
-	yy_delete_buffer(bp,  p.scaninfo);
-	if( f != NULL) { fclose(f); }
-
-	return 0;
+void free_ast(struct pcdata* p, YY_BUFFER_STATE bp){
+	yy_delete_buffer(bp,  p->scaninfo);
+	treefree(p, p->ast);
+	p->ast=NULL;
 }
 
 void yyerror(struct pcdata *pp, char *s, ...)

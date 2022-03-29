@@ -124,3 +124,8 @@ void treefree(struct pcdata *, struct ast *);
 
 /* interface to the scanner */
 void yyerror(struct pcdata *pp, char *s, ...);
+
+/* client api */
+int build_ast(struct pcdata* p, YY_BUFFER_STATE* bp, const char*);
+void free_ast(struct pcdata* p, YY_BUFFER_STATE bp);
+

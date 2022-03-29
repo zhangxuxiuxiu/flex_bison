@@ -1,16 +1,25 @@
-//#include "purecalc.lex.h"
 #include "purecalc.tab.h"
+#include "purecalc.lex.h"
+#include "ast.h"
 
 #include <stdio.h>
 
 int main(int argc, char* argv[]){
 	struct pcdata p = { NULL, 0, NULL };
-	/* set up scanner */
+	YY_BUFFER_STATE bp;
+
+	if(build_ast(&p, &bp, argv[1])){
+		fprintf(stderr, "failed in building ast\n");
+		return -1;
+	}
+	printf( "%s = %f\n", argv[1], eval(&p, p.ast));
+	free_ast(&p, bp);
+
+/*
 	if(yylex_init_extra(&p, &p.scaninfo)) {
 		perror("init alloc failed");
 		return 1;
 	}
-	/* allocate and zero out the symbol table */
 	if(!(p.symtab = calloc(NHASH, sizeof(struct symbol)))) {
 		perror("sym alloc failed");
 		return 1;
@@ -45,6 +54,6 @@ int main(int argc, char* argv[]){
 
 	yy_delete_buffer(bp,  p.scaninfo);
 	if( f != NULL) { fclose(f); }
-
+*/
 	return 0;
 }
