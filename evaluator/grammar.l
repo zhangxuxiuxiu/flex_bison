@@ -2,9 +2,9 @@
 /* pure scanner and parser version */
 /* $Header: /usr/home/johnl/flnb/RCS/ch09.tr,v 1.4 2009/05/19 18:28:27 johnl Exp $ */
 %option noyywrap nodefault yylineno reentrant bison-bridge
-%option header-file="purecalc.lex.h"
+%option header-file="grammar.lex.h"
 %{
-#include "purecalc.tab.h"
+#include "grammar.tab.h"
 #include "ast.h"
 %}
 /* float exponent */
@@ -47,8 +47,6 @@ EXP ([Ee][-+]?[0-9]+)
 "comment" { yylval->fp = &eval_comment; return FPTR; }
 "follow" { yylval->fp = &eval_follow; return FPTR; }
  /* names */
-"like" {yylval->d = 3.f; return NUMBER;}
-"follow" {yylval->d = 5.f; return NUMBER;}
 [a-zA-Z][a-zA-Z0-9]* { yylval->s = lookup(pp, yytext); return NAME; }
 [0-9]+"."[0-9]*{EXP}? |
 "."?[0-9]+{EXP}? { yylval->d = atof(yytext); return NUMBER; }

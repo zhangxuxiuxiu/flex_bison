@@ -6,8 +6,8 @@
 # include <stdarg.h>
 # include <string.h>
 # include <math.h>
-# include "purecalc.tab.h"
-# include "purecalc.lex.h"
+# include "grammar.tab.h"
+# include "grammar.lex.h"
 # include "ast.h"
 
 /* symbol table */

@@ -1,6 +1,6 @@
-purecalc.tab.h
-purecalc.tab.c
-purecalc.lex.h
-purecalc.lex.c
-purecalc.c
-purecalc
+grammar.tab.h
+grammar.tab.c
+grammar.lex.h
+grammar.lex.c
+grammar.c
+eval

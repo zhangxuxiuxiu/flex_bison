@@ -17,7 +17,7 @@
 }
 
 %{
-# include "purecalc.lex.h"
+# include "grammar.lex.h"
 # include "ast.h"
 #define YYLEX_PARAM pp->scaninfo
 %}
