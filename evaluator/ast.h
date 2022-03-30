@@ -18,8 +18,7 @@ struct symbol { /* a variable name */
 
 
 /* simple symtab of fixed size */
-#define NHASH 9997
-//struct symbol symtab[NHASH];
+#define NHASH 97
 struct symbol *lookup(struct pcdata *, const char*);
 /* list of symbols, for an argument list */
 struct symlist {
@@ -30,7 +29,7 @@ struct symlist {
 
 struct symlist *newsymlist(struct pcdata *, struct symbol *sym, struct symlist *next);
 
-void symlistfree(struct pcdata *, struct symlist *sl);
+void free_symlist(struct pcdata *, struct symlist *sl);
 
 /* node types
  * + - * / |
@@ -128,8 +127,10 @@ void dodef(struct pcdata *, struct symbol *name, struct symlist *syms, struct as
 /* evaluate an AST */
 double eval(struct pcdata *, struct ast *, void* u, double(*convert)(void* fn, void* u));
 
+
+void free_symbol(struct pcdata*, struct symbol*);
 /* delete and free an AST */
-void treefree(struct pcdata *, struct ast *);
+void free_ast(struct pcdata *, struct ast *);
 
 /* interface to the scanner */
 void yyerror(struct pcdata *pp, char *s, ...);

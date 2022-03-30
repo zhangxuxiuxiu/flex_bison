@@ -111,6 +111,9 @@ struct ast* build_ast(struct pcdata* p,  const char* stmt){
 }
 
 void free_grammar(struct pcdata* p){
+	for(int i=0; i<NHASH; ++i){
+		free_symbol(p, p->symtab+i);
+	}
 	free(p->symtab);
 }
 

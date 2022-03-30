@@ -80,7 +80,7 @@ int main(int argc, char* argv[]){
 	printf("raw cost:%f, r=%f\n", (double)(clock()-start_ts)/CLK_TCKCLOCKS_PER_SEC, r);
 
 	// 4) destruction
-	treefree(&p, a);
+	free_ast(&p, a);
 	free_grammar(&p);
 
 
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]){
 		yyparse(&p);
 		if(p.ast) {
 			printf("= %4.4g\n", eval(&p, p.ast));
-			treefree(&p, p.ast);
+			free_ast(&p, p.ast);
 			p.ast = 0;
 		} else {
 			printf("no ast\n");

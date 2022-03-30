@@ -198,7 +198,7 @@ newsymlist(struct pcdata *pp, struct symbol *sym, struct symlist *next)
 }
 
 	void
-symlistfree(struct pcdata *pp, struct symlist *sl)
+free_symlist(struct pcdata *pp, struct symlist *sl)
 {
 	struct symlist *nsl;
 	while(sl) {
@@ -212,8 +212,8 @@ symlistfree(struct pcdata *pp, struct symlist *sl)
 	void
 dodef(struct pcdata *pp, struct symbol *name, struct symlist *syms, struct ast *func)
 {
-	if(name->syms) symlistfree(pp, name->syms);
-	if(name->func) treefree(pp, name->func);
+	if(name->syms) free_symlist(pp, name->syms);
+	if(name->func) free_ast(pp, name->func);
 	name->syms = syms;
 	name->func = func;
 }
@@ -361,8 +361,15 @@ calluser(struct pcdata *pp, struct ufncall *f,void* u, double(*cvt)(void* fn, vo
 	return v;
 }
 
+void free_symbol(struct pcdata* p, struct symbol* s){
+	if(!s) return;	
+	if(s->name) free(s->name);
+	if(s->func) free_ast(p, s->func);
+	if(s->syms) free_symlist(p, s->syms);
+}
+
 	void
-treefree(struct pcdata *pp, struct ast *a)
+free_ast(struct pcdata *pp, struct ast *a)
 {
 	switch(a->nodetype) {
 		/* two subtrees */
@@ -372,11 +379,11 @@ treefree(struct pcdata *pp, struct ast *a)
 		case '/':
 		case '1': case '2': case '3': case '4': case '5': case '6':
 		case 'L':
-			treefree(pp, a->r);
+			free_ast(pp, a->r);
 			/* one subtree */
 		case '|':
 		case 'M': case 'C': case 'F':
-			treefree(pp, a->l);
+			free_ast(pp, a->l);
 			/* no subtree */
 		case 'K': case 'N': case 'P':
 			break;
