@@ -3,26 +3,64 @@
 #include "ast.h"
 
 #include <stdio.h>
+#include <time.h>
+
+#define CLK_TCKCLOCKS_PER_SEC 1000
+
+double raw_fn(struct user_score* u){
+	return u->like * u->follow - u-> comment;
+}
 
 int main(int argc, char* argv[]){
-	if(argc==1){
-		fprintf(stderr, "Usage: %s \"like+follow/comment\" \"2*like+3*comment+4*follow-0.5\" \n", argv[0]);
+//	if(argc==1){
+//		fprintf(stderr, "Usage: %s \"like+follow/comment\" \"2*like+3*comment+4*follow-0.5\" \n", argv[0]);
+//		return -1;
+//	}
+
+	// 1) init grammar and define keywords
+	struct pcdata p = { NULL, 0, NULL };
+	init_grammar(&p);
+	addsym(&p, "like", &eval_like);
+	addsym(&p, "comment", &eval_comment);
+	addsym(&p, "follow", &eval_follow);
+
+	// 2) prepare user data
+	struct user_score u1={2,3,4};
+	struct user_score u2={3,4,5};
+	struct user_score u3={6,7,8};
+	printf("u1: like->%f, comment->%f, follow->%f\n", u1.like, u1.comment, u1.follow);
+	printf("u1: like->%f, comment->%f, follow->%f\n", u2.like, u2.comment, u2.follow);
+	printf("u1: like->%f, comment->%f, follow->%f\n", u3.like, u3.comment, u3.follow);
+
+	// 3) build ast for each statement and eval ast on each user datum
+	struct ast* a = build_ast(&p, "like*follow-comment");
+	if(!a){
+		fprintf(stderr, "failed in building ast\n");
 		return -1;
 	}
 
-	struct pcdata p = { NULL, 0, NULL };
-	YY_BUFFER_STATE bp;
-	struct user_score user={2,3,4};
-	printf("like->%f, comment->%f, follow->%f\n", user.like, user.comment, user.follow);
-	for(int i=1; i<argc; ++i){
-		if(build_ast(&p, &bp, argv[i])){
-			fprintf(stderr, "failed in building ast\n");
-			return -1;
-		}
-		printf( "%s = %f\n", argv[i], eval(&p, p.ast, &user));
-		free_ast(&p, bp);
+	clock_t start_ts = clock();
+	double r =0.f;
+	for(int j=0; j<100000; ++j){
+	//	printf( "%s = %f\n", argv[i+1], eval(&p, asts[i], &u1));
+		r+=eval(&p, a, &u1);
+		r+=eval(&p, a, &u2);
+		r+=eval(&p, a, &u3);
 	}
+	printf("ast cost:%f, r=%f\n", (double)(clock()-start_ts)/CLK_TCKCLOCKS_PER_SEC, r);
 
+	start_ts = clock();
+	r = 0.f;
+	for(int j=0; j<100000; ++j){
+		r+=raw_fn(&u1);
+		r+=raw_fn(&u2);
+		r+=raw_fn(&u3);
+	}
+	printf("raw cost:%f, r=%f\n", (double)(clock()-start_ts)/CLK_TCKCLOCKS_PER_SEC, r);
+
+	// 4) destruction
+	free_grammar(&p);
+	treefree(&p, a);
 
 
 

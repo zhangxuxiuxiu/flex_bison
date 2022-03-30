@@ -16,21 +16,22 @@ struct symbol { /* a variable name */
  struct symlist *syms; /* list of dummy args */
 };
 
+struct user_score{ 
+	double like;
+	double comment;
+	double follow;
+};
+
 /* simple symtab of fixed size */
 #define NHASH 9997
-struct symbol symtab[NHASH];
-struct symbol *lookup(struct pcdata *, char*);
+//struct symbol symtab[NHASH];
+struct symbol *lookup(struct pcdata *, const char*);
 /* list of symbols, for an argument list */
 struct symlist {
  struct symbol *sym;
  struct symlist *next;
 };
 
-struct user_score{ 
-	double like;
-	double comment;
-	double follow;
-};
 
 struct symlist *newsymlist(struct pcdata *, struct symbol *sym, struct symlist *next);
 
@@ -139,8 +140,10 @@ void treefree(struct pcdata *, struct ast *);
 void yyerror(struct pcdata *pp, char *s, ...);
 
 /* client api */
-int build_ast(struct pcdata* p, YY_BUFFER_STATE* bp, const char*);
-void free_ast(struct pcdata* p, YY_BUFFER_STATE bp);
+int init_grammar(struct pcdata*);
+struct ast* build_ast(struct pcdata* p, const char*);
+struct symbol * addsym(struct pcdata *pp,const char* sym, double(*fp)(struct user_score*));
+void free_grammar(struct pcdata* p);
 
 /* keyword function*/
 

@@ -43,9 +43,9 @@ EXP ([Ee][-+]?[0-9]+)
 "exp" { yylval->fn = B_exp; return FUNC; }
 "log" { yylval->fn = B_log; return FUNC; }
 "print" { yylval->fn = B_print; return FUNC; }
-"like" { yylval->fp = &eval_like; return FPTR; }
-"comment" { yylval->fp = &eval_comment; return FPTR; }
-"follow" { yylval->fp = &eval_follow; return FPTR; }
+ /*"like" { yylval->fp = &eval_like; return FPTR; }*/
+ /*"comment" { yylval->fp = &eval_comment; return FPTR; }*/
+ /*"follow" { yylval->fp = &eval_follow; return FPTR; }*/
  /* names */
 [a-zA-Z][a-zA-Z0-9]* { yylval->s = lookup(pp, yytext); return NAME; }
 [0-9]+"."[0-9]*{EXP}? |

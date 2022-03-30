@@ -43,8 +43,7 @@ calc: /* nothing */ EOL { pp->ast = NULL; YYACCEPT; }
  | stmt  { pp->ast = $1; YYACCEPT; }
  | LET NAME '(' symlist ')' '=' list EOL {
  dodef(pp, $2, $4, $7);
- printf("%d: Defined %s\n", yyget_lineno(pp->scaninfo),
- $2->name);
+ printf("%d: Defined %s\n", yyget_lineno(pp->scaninfo),$2->name);
  pp->ast = NULL; YYACCEPT; }
  ;
 
@@ -88,25 +87,31 @@ symlist: NAME { $$ = newsymlist(pp, $1, NULL); }
 
 %%
 
-int build_ast(struct pcdata* p, YY_BUFFER_STATE* bp, const char* stmt){
+int init_grammar(struct pcdata* p){
 	if(yylex_init_extra(p, &(p->scaninfo))) {
 		perror("init alloc failed");
 		return 1;
 	}
 	if(!(p->symtab = calloc(NHASH, sizeof(struct symbol)))) {
 		perror("sym alloc failed");
-		return 1;
+		return 2;
 	}
-	*bp = yy_scan_string(stmt,  p->scaninfo);
-	yy_switch_to_buffer(*bp, p->scaninfo);
-	int r = yyparse(p);
-	return r? r : (p->ast ? 0 : -1);
+	return 0;
 }
 
-void free_ast(struct pcdata* p, YY_BUFFER_STATE bp){
+struct ast* build_ast(struct pcdata* p,  const char* stmt){
+	YY_BUFFER_STATE bp = yy_scan_string(stmt,  p->scaninfo);
+	yy_switch_to_buffer(bp, p->scaninfo);
+	int r = yyparse(p);
 	yy_delete_buffer(bp,  p->scaninfo);
-	treefree(p, p->ast);
+	if(r) return NULL;
+	struct ast* a = p->ast;
 	p->ast=NULL;
+	return a;
+}
+
+void free_grammar(struct pcdata* p){
+	free(p->symtab);
 }
 
 void yyerror(struct pcdata *pp, char *s, ...)

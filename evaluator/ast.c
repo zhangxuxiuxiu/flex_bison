@@ -13,7 +13,7 @@
 /* symbol table */
 /* hash a symbol */
 	static unsigned
-symhash(char *sym)
+symhash(const char *sym)
 {
 	unsigned int hash = 0;
 	unsigned c;
@@ -22,7 +22,7 @@ symhash(char *sym)
 }
 
 	struct symbol *
-lookup(struct pcdata *pp, char* sym)
+lookup(struct pcdata *pp, const char* sym)
 {
 	struct symbol *sp = &(pp->symtab)[symhash(sym)%NHASH];
 	int scount = NHASH; /* how many have we looked at */
@@ -32,6 +32,25 @@ lookup(struct pcdata *pp, char* sym)
 			sp->name = strdup(sym);
 			sp->value = 0;
 			sp->func = NULL;
+			sp->syms = NULL;
+			return sp;
+		}
+		if(++sp >= pp->symtab+NHASH) sp = pp->symtab; /* try the next entry */
+	}
+	yyerror(pp, "symbol table overflow\n");
+	abort(); /* tried them all, table is full */
+}
+
+struct symbol * addsym(struct pcdata *pp,const char* sym, double(*fp)(struct user_score*))
+{
+	struct symbol *sp = &(pp->symtab)[symhash(sym)%NHASH];
+	int scount = NHASH; /* how many have we looked at */
+	while(--scount >= 0) {
+		if(sp->name && !strcmp(sp->name, sym)) { return NULL; }
+		if(!sp->name) { /* new entry */
+			sp->name = strdup(sym);
+			sp->value = 0;
+			sp->func = newfptr(pp,fp);
 			sp->syms = NULL;
 			return sp;
 		}
@@ -212,7 +231,7 @@ double eval(struct pcdata *pp, struct ast *a, struct user_score* u)
 		/* constant */
 		case 'K': v = ((struct numval *)a)->number; break;
 		case 'P': v = (*(((struct fnptr *)a)->fp))(u); break;
-		case 'N': v = ((struct symref *)a)->s->value; break;
+		case 'N': v = eval(pp, ((struct symref *)a)->s->func, u); break;
 			  /* assignment */
 		case '=': v = ((struct symasgn *)a)->s->value =
 			  eval(pp, ((struct symasgn *)a)->v, u); break;
