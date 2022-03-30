@@ -26,8 +26,9 @@ double eval_follow(struct user_score* u){
 DEFINE_CONVERT_FN(convert, struct user_score)
 
 double raw_fn(struct user_score* u){
-	return u->like * u->follow - u-> comment;
+	return u->like * u->follow - u-> comment + 1;
 }
+const char* g_stmt = "like*follow-comment+1";
 
 #define CLK_TCKCLOCKS_PER_SEC 1000
 
@@ -53,7 +54,7 @@ int main(int argc, char* argv[]){
 	printf("u1: like->%f, comment->%f, follow->%f\n", u3.like, u3.comment, u3.follow);
 
 	// 3) build ast for each statement and eval ast on each user datum
-	struct ast* a = build_ast(&p, "like*follow-comment");
+	struct ast* a = build_ast(&p, g_stmt);
 	if(!a){
 		fprintf(stderr, "failed in building ast\n");
 		return -1;
