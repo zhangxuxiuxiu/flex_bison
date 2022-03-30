@@ -41,7 +41,7 @@ lookup(struct pcdata *pp, const char* sym)
 	abort(); /* tried them all, table is full */
 }
 
-struct symbol * addsym(struct pcdata *pp,const char* sym, double(*fp)(struct user_score*))
+struct symbol * addsym(struct pcdata *pp,const char* sym, void *fp)
 {
 	struct symbol *sp = &(pp->symtab)[symhash(sym)%NHASH];
 	int scount = NHASH; /* how many have we looked at */
@@ -88,7 +88,7 @@ newnum(struct pcdata *pp, double d)
 }
 
 	struct ast *
-newfptr(struct pcdata *pp, double (*p)(struct user_score*))
+newfptr(struct pcdata *pp, void*p)
 {
 	struct fnptr *a = malloc(sizeof(struct fnptr));
 	if(!a) {
@@ -218,9 +218,9 @@ dodef(struct pcdata *pp, struct symbol *name, struct symlist *syms, struct ast *
 	name->func = func;
 }
 
-static double callbuiltin(struct pcdata *pp, struct fncall *);
-static double calluser(struct pcdata *pp, struct ufncall *);
-double eval(struct pcdata *pp, struct ast *a, struct user_score* u)
+static double callbuiltin(struct pcdata *pp, struct fncall *, void* u, double(*cvt)(void* fn, void* u));
+static double calluser(struct pcdata *pp, struct ufncall *, void* u, double(*cvt)(void* fn, void* u));
+double eval(struct pcdata *pp, struct ast *a, void* u, double(*cvt)(void* fn, void* u))
 {
 	double v;
 	if(!a) {
@@ -230,36 +230,36 @@ double eval(struct pcdata *pp, struct ast *a, struct user_score* u)
 	switch(a->nodetype) {
 		/* constant */
 		case 'K': v = ((struct numval *)a)->number; break;
-		case 'P': v = (*(((struct fnptr *)a)->fp))(u); break;
-		case 'N': v = eval(pp, ((struct symref *)a)->s->func, u); break;
+		case 'P': v = (*cvt)(((struct fnptr *)a)->fp, u); break;
+		case 'N': v = eval(pp, ((struct symref *)a)->s->func, u, cvt); break;
 			  /* assignment */
 		case '=': v = ((struct symasgn *)a)->s->value =
-			  eval(pp, ((struct symasgn *)a)->v, u); break;
+			  eval(pp, ((struct symasgn *)a)->v, u, cvt); break;
 			  /* expressions */
-		case '+': v = eval(pp, a->l, u) + eval(pp, a->r, u); break;
-		case '-': v = eval(pp, a->l, u) - eval(pp, a->r, u); break;
-		case '*': v = eval(pp, a->l, u) * eval(pp, a->r, u); break;
-		case '/': v = eval(pp, a->l, u) / eval(pp, a->r, u); break;
-		case '|': v = fabs(eval(pp, a->l, u)); break;
-		case 'M': v = -eval(pp, a->l, u); break;
+		case '+': v = eval(pp, a->l, u, cvt) + eval(pp, a->r, u, cvt); break;
+		case '-': v = eval(pp, a->l, u, cvt) - eval(pp, a->r, u, cvt); break;
+		case '*': v = eval(pp, a->l, u, cvt) * eval(pp, a->r, u, cvt); break;
+		case '/': v = eval(pp, a->l, u, cvt) / eval(pp, a->r, u, cvt); break;
+		case '|': v = fabs(eval(pp, a->l, u, cvt)); break;
+		case 'M': v = -eval(pp, a->l, u, cvt); break;
 			  /* comparisons */
-		case '1': v = (eval(pp, a->l, u) > eval(pp, a->r, u))? 1 : 0; break;
-		case '2': v = (eval(pp, a->l, u) < eval(pp, a->r, u))? 1 : 0; break;
-		case '3': v = (eval(pp, a->l, u) != eval(pp, a->r, u))? 1 : 0; break;
-		case '4': v = (eval(pp, a->l, u) == eval(pp, a->r, u))? 1 : 0; break;
-		case '5': v = (eval(pp, a->l, u) >= eval(pp, a->r, u))? 1 : 0; break;
-		case '6': v = (eval(pp, a->l, u) <= eval(pp, a->r, u))? 1 : 0; break;
+		case '1': v = (eval(pp, a->l, u, cvt) > eval(pp, a->r, u, cvt))? 1 : 0; break;
+		case '2': v = (eval(pp, a->l, u, cvt) < eval(pp, a->r, u, cvt))? 1 : 0; break;
+		case '3': v = (eval(pp, a->l, u, cvt) != eval(pp, a->r, u, cvt))? 1 : 0; break;
+		case '4': v = (eval(pp, a->l, u, cvt) == eval(pp, a->r, u, cvt))? 1 : 0; break;
+		case '5': v = (eval(pp, a->l, u, cvt) >= eval(pp, a->r, u, cvt))? 1 : 0; break;
+		case '6': v = (eval(pp, a->l, u, cvt) <= eval(pp, a->r, u, cvt))? 1 : 0; break;
 			  /* control flow */
 			  /* null if/else/do expressions allowed in the grammar, so check for them */
 		case 'I':
-			  if( eval(pp, ((struct flow *)a)->cond, u) != 0) {
+			  if( eval(pp, ((struct flow *)a)->cond, u, cvt) != 0) {
 				  if( ((struct flow *)a)->tl) {
-					  v = eval(pp, ((struct flow *)a)->tl, u);
+					  v = eval(pp, ((struct flow *)a)->tl, u, cvt);
 				  } else
 					  v = 0.0; /* a default value */
 			  } else {
 				  if( ((struct flow *)a)->el) {
-					  v = eval(pp, ((struct flow *)a)->el, u);
+					  v = eval(pp, ((struct flow *)a)->el, u, cvt);
 				  } else
 					  v = 0.0; /* a default value */
 			  }
@@ -267,23 +267,23 @@ double eval(struct pcdata *pp, struct ast *a, struct user_score* u)
 		case 'W':
 			  v = 0.0; /* a default value */
 			  if( ((struct flow *)a)->tl) {
-				  while( eval(pp, ((struct flow *)a)->cond, u) != 0)
-					  v = eval(pp, ((struct flow *)a)->tl, u);
+				  while( eval(pp, ((struct flow *)a)->cond, u, cvt) != 0)
+					  v = eval(pp, ((struct flow *)a)->tl, u, cvt);
 			  }
 			  break; /* last value is value */
-		case 'L': eval(pp, a->l, u); v = eval(pp, a->r, u); break;
-		case 'F': v = callbuiltin(pp, (struct fncall *)a); break;
-		case 'C': v = calluser(pp, (struct ufncall *)a); break;
+		case 'L': eval(pp, a->l, u, cvt); v = eval(pp, a->r, u, cvt); break;
+		case 'F': v = callbuiltin(pp, (struct fncall *)a, u, cvt); break;
+		case 'C': v = calluser(pp, (struct ufncall *)a, u, cvt); break;
 		default: printf("internal error: bad node %c\n", a->nodetype);
 	}
 	return v;
 }
 
 	static double
-callbuiltin(struct pcdata *pp, struct fncall *f)
+callbuiltin(struct pcdata *pp, struct fncall *f, void* u, double(*cvt)(void* fn, void* u))
 {
 	enum bifs functype = f->functype;
-	double v = eval(pp, f->l, NULL);
+	double v = eval(pp, f->l, u, cvt);
 	switch(functype) {
 		case B_sqrt:
 			return sqrt(v);
@@ -301,7 +301,7 @@ callbuiltin(struct pcdata *pp, struct fncall *f)
 }
 
 	static double
-calluser(struct pcdata *pp, struct ufncall *f)
+calluser(struct pcdata *pp, struct ufncall *f,void* u, double(*cvt)(void* fn, void* u))
 {
 	struct symbol *fn = f->s; /* function name */
 	struct symlist *sl; /* dummy arguments */
@@ -332,10 +332,10 @@ calluser(struct pcdata *pp, struct ufncall *f)
 			return 0;
 		}
 		if(args->nodetype == 'L') { /* if this is a list node */
-			newval[i] = eval(pp, args->l, NULL);
+			newval[i] = eval(pp, args->l, u, cvt);
 			args = args->r;
 		} else { /* if it's the end of the list */
-			newval[i] = eval(pp, args, NULL);
+			newval[i] = eval(pp, args, u, cvt);
 			args = NULL;
 		}
 	}
@@ -349,7 +349,7 @@ calluser(struct pcdata *pp, struct ufncall *f)
 	}
 	free(newval);
 	/* evaluate the function */
-	v = eval(pp, fn->func, NULL);
+	v = eval(pp, fn->func, u, cvt);
 	/* put the dummies back */
 	sl = fn->syms;
 	for(i = 0; i < nargs; i++) {
@@ -393,15 +393,3 @@ treefree(struct pcdata *pp, struct ast *a)
 	free(a); /* always free the node itself */
 }
 
-
-double eval_like(struct user_score* u){
-	return u->like;
-}
-
-double eval_comment(struct user_score* u){
-	return u->comment;
-}
-
-double eval_follow(struct user_score* u){
-	return u->follow;
-}

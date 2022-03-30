@@ -16,11 +16,6 @@ struct symbol { /* a variable name */
  struct symlist *syms; /* list of dummy args */
 };
 
-struct user_score{ 
-	double like;
-	double comment;
-	double follow;
-};
 
 /* simple symtab of fixed size */
 #define NHASH 9997
@@ -93,7 +88,7 @@ struct numval {
 
 struct fnptr {
 	int nodetype; /* type P */
-	double (*fp)(struct user_score*);
+	void* fp;
 };
 
 struct symref {
@@ -122,7 +117,7 @@ struct ast *newasgn(struct pcdata *, struct symbol *s, struct ast *v);
 
 struct ast *newnum(struct pcdata *, double d);
 
-struct ast *newfptr(struct pcdata *, double(*p)(struct user_score*));
+struct ast *newfptr(struct pcdata *, void* p);
 
 struct ast *newflow(struct pcdata *, int nodetype, struct ast *cond, struct ast *tl, 
  struct ast *tr);
@@ -131,7 +126,7 @@ struct ast *newflow(struct pcdata *, int nodetype, struct ast *cond, struct ast 
 void dodef(struct pcdata *, struct symbol *name, struct symlist *syms, struct ast *stmts);
 
 /* evaluate an AST */
-double eval(struct pcdata *, struct ast *, struct user_score*);
+double eval(struct pcdata *, struct ast *, void* u, double(*convert)(void* fn, void* u));
 
 /* delete and free an AST */
 void treefree(struct pcdata *, struct ast *);
@@ -140,13 +135,17 @@ void treefree(struct pcdata *, struct ast *);
 void yyerror(struct pcdata *pp, char *s, ...);
 
 /* client api */
+#define DEFINE_CONVERT_FN(FnName, BizType) 			\
+	double FnName(void* vfn, void* vu){			\
+	double (*fn)(BizType*) = (double (*)(BizType*))(vfn);	\
+	BizType* u = (BizType*)(vu);				\
+	return (*fn)(u);					\
+}
+
 int init_grammar(struct pcdata*);
 struct ast* build_ast(struct pcdata* p, const char*);
-struct symbol * addsym(struct pcdata *pp,const char* sym, double(*fp)(struct user_score*));
+struct symbol * addsym(struct pcdata *pp,const char* sym, void*);
 void free_grammar(struct pcdata* p);
 
 /* keyword function*/
 
-double eval_like(struct user_score* u);
-double eval_comment(struct user_score* u);
-double eval_follow(struct user_score* u);

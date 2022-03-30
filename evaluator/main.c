@@ -5,11 +5,31 @@
 #include <stdio.h>
 #include <time.h>
 
-#define CLK_TCKCLOCKS_PER_SEC 1000
+struct user_score{ 
+	double like;
+	double comment;
+	double follow;
+};
+
+double eval_like(struct user_score* u){
+	return u->like;
+}
+
+double eval_comment(struct user_score* u){
+	return u->comment;
+}
+
+double eval_follow(struct user_score* u){
+	return u->follow;
+}
+
+DEFINE_CONVERT_FN(convert, struct user_score)
 
 double raw_fn(struct user_score* u){
 	return u->like * u->follow - u-> comment;
 }
+
+#define CLK_TCKCLOCKS_PER_SEC 1000
 
 int main(int argc, char* argv[]){
 //	if(argc==1){
@@ -42,10 +62,10 @@ int main(int argc, char* argv[]){
 	clock_t start_ts = clock();
 	double r =0.f;
 	for(int j=0; j<100000; ++j){
-	//	printf( "%s = %f\n", argv[i+1], eval(&p, asts[i], &u1));
-		r+=eval(&p, a, &u1);
-		r+=eval(&p, a, &u2);
-		r+=eval(&p, a, &u3);
+	//	printf( "%s = %f\n", argv[i+1], eval(&p, asts[i], &u1, &convert));
+		r+=eval(&p, a, &u1, &convert);
+		r+=eval(&p, a, &u2, &convert);
+		r+=eval(&p, a, &u3, &convert);
 	}
 	printf("ast cost:%f, r=%f\n", (double)(clock()-start_ts)/CLK_TCKCLOCKS_PER_SEC, r);
 
@@ -59,8 +79,8 @@ int main(int argc, char* argv[]){
 	printf("raw cost:%f, r=%f\n", (double)(clock()-start_ts)/CLK_TCKCLOCKS_PER_SEC, r);
 
 	// 4) destruction
-	free_grammar(&p);
 	treefree(&p, a);
+	free_grammar(&p);
 
 
 
