@@ -7,8 +7,8 @@
 
 struct user_score{ 
 	double like;
-	double comment;
 	double follow;
+	double comment;
 };
 
 double eval_like(struct user_score* u){
@@ -25,10 +25,19 @@ double eval_follow(struct user_score* u){
 
 DEFINE_CONVERT_FN(convert, struct user_score)
 
-double raw_fn(struct user_score* u){
-	return u->like * u->follow - u-> comment + 1;
+double raw_fn1(struct user_score* u){
+	return u->like + u->follow / u-> comment;
 }
-const char* g_stmt = "like*follow-comment+1";
+double raw_fn2(struct user_score* u){
+	return u->like*u->follow/(u->comment-u->follow)*(u->like+u->follow)-0.1;
+}
+double raw_fn3(struct user_score* u){
+	return (u->like+u->follow)*(u->like+u->comment)*(u->follow+u->comment)/(u->comment-u->follow)/(u->like-u->follow)/(u->like-u->comment);
+}
+
+const char* g_stmt1 = "like+follow/comment";	
+const char* g_stmt2 = "like*follow/(comment-follow)*(like+follow)-0.1";	
+const char* g_stmt3 = "(like+follow)*(like+comment)*(follow+comment)/(comment-follow)/(like-follow)/(like-comment)";	
 
 #define CLK_TCKCLOCKS_PER_SEC 1000
 
@@ -49,13 +58,16 @@ int main(int argc, char* argv[]){
 	struct user_score u1={2,3,4};
 	struct user_score u2={3,4,5};
 	struct user_score u3={6,7,8};
+	struct user_score* users[] = {&u1, &u2, &u3};
 	printf("u1: like->%f, comment->%f, follow->%f\n", u1.like, u1.comment, u1.follow);
 	printf("u1: like->%f, comment->%f, follow->%f\n", u2.like, u2.comment, u2.follow);
 	printf("u1: like->%f, comment->%f, follow->%f\n", u3.like, u3.comment, u3.follow);
 
 	// 3) build ast for each statement and eval ast on each user datum
-	struct ast* a = build_ast(&p, g_stmt);
-	if(!a){
+	struct ast* a1 = build_ast(&p, g_stmt1);
+	struct ast* a2 = build_ast(&p, g_stmt2);
+	struct ast* a3 = build_ast(&p, g_stmt3);
+	if(!a1 || !a2 || !a3){
 		fprintf(stderr, "failed in building ast\n");
 		return -1;
 	}
@@ -63,24 +75,29 @@ int main(int argc, char* argv[]){
 	clock_t start_ts = clock();
 	double r =0.f;
 	for(int j=0; j<100000; ++j){
-	//	printf( "%s = %f\n", argv[i+1], eval(&p, asts[i], &u1, &convert));
-		r+=eval(&p, a, &u1, &convert);
-		r+=eval(&p, a, &u2, &convert);
-		r+=eval(&p, a, &u3, &convert);
+		for(int i=0; i<3; ++i){
+			r+=eval(&p, a1, *(users+i), &convert);
+			r+=eval(&p, a2, *(users+i), &convert);
+			r+=eval(&p, a3, *(users+i), &convert);
+		}
 	}
 	printf("ast cost:%f, r=%f\n", (double)(clock()-start_ts)/CLK_TCKCLOCKS_PER_SEC, r);
 
 	start_ts = clock();
 	r = 0.f;
 	for(int j=0; j<100000; ++j){
-		r+=raw_fn(&u1);
-		r+=raw_fn(&u2);
-		r+=raw_fn(&u3);
+		for(int i=0; i<3; ++i){
+			r+=raw_fn1(*(users+i));
+			r+=raw_fn2(*(users+i));
+			r+=raw_fn3(*(users+i));
+		}
 	}
 	printf("raw cost:%f, r=%f\n", (double)(clock()-start_ts)/CLK_TCKCLOCKS_PER_SEC, r);
 
 	// 4) destruction
-	free_ast(&p, a);
+	free_ast(&p, a1);
+	free_ast(&p, a2);
+	free_ast(&p, a3);
 	free_grammar(&p);
 
 

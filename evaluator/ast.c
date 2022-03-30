@@ -43,21 +43,9 @@ lookup(struct pcdata *pp, const char* sym)
 
 struct symbol * addsym(struct pcdata *pp,const char* sym, void *fp)
 {
-	struct symbol *sp = &(pp->symtab)[symhash(sym)%NHASH];
-	int scount = NHASH; /* how many have we looked at */
-	while(--scount >= 0) {
-		if(sp->name && !strcmp(sp->name, sym)) { return NULL; }
-		if(!sp->name) { /* new entry */
-			sp->name = strdup(sym);
-			sp->value = 0;
-			sp->func = newfptr(pp,fp);
-			sp->syms = NULL;
-			return sp;
-		}
-		if(++sp >= pp->symtab+NHASH) sp = pp->symtab; /* try the next entry */
-	}
-	yyerror(pp, "symbol table overflow\n");
-	abort(); /* tried them all, table is full */
+	struct symbol* s = lookup(pp, sym);
+	s -> func = newfptr(pp, fp);
+	return s;
 }
 
 	struct ast *
