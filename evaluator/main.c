@@ -23,7 +23,7 @@ double eval_follow(struct user_score* u){
 	return u->follow;
 }
 
-DEFINE_CONVERT_FN(convert, struct user_score)
+DEFINE_EVAL_FN(user_eval, struct user_score)
 
 double raw_fn1(struct user_score* u){
 	return u->like + u->follow / u-> comment;
@@ -74,25 +74,25 @@ int main(int argc, char* argv[]){
 
 	clock_t start_ts = clock();
 	double r =0.f;
-	for(int j=0; j<100000; ++j){
+	for(int j=0; j<1000000; ++j){
 		for(int i=0; i<3; ++i){
-			r+=eval(&p, a1, *(users+i), &convert);
-			r+=eval(&p, a2, *(users+i), &convert);
-			r+=eval(&p, a3, *(users+i), &convert);
+			r+=user_eval(&p, a1, *(users+i));
+			r+=user_eval(&p, a2, *(users+i));
+			r+=user_eval(&p, a3, *(users+i));
 		}
 	}
-	printf("ast cost:%f, r=%f\n", (double)(clock()-start_ts)/CLK_TCKCLOCKS_PER_SEC, r);
+	printf("ast cost:%f ms, r=%f\n", (double)(clock()-start_ts)/CLK_TCKCLOCKS_PER_SEC, r);
 
 	start_ts = clock();
 	r = 0.f;
-	for(int j=0; j<100000; ++j){
+	for(int j=0; j<1000000; ++j){
 		for(int i=0; i<3; ++i){
 			r+=raw_fn1(*(users+i));
 			r+=raw_fn2(*(users+i));
 			r+=raw_fn3(*(users+i));
 		}
 	}
-	printf("raw cost:%f, r=%f\n", (double)(clock()-start_ts)/CLK_TCKCLOCKS_PER_SEC, r);
+	printf("raw cost:%f ms, r=%f\n", (double)(clock()-start_ts)/CLK_TCKCLOCKS_PER_SEC, r);
 
 	// 4) destruction
 	free_ast(&p, a1);
