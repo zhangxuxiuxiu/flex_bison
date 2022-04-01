@@ -23,7 +23,7 @@ double eval_follow(struct user_score* u){
 	return u->follow;
 }
 
-DEFINE_EVAL_FN(user_eval, struct user_score)
+EVAL_DEFINE_FN(user_eval, add_keyword, struct user_score)
 
 double raw_fn1(struct user_score* u){
 	return u->like + u->follow / u-> comment;
@@ -50,9 +50,9 @@ int main(int argc, char* argv[]){
 	// 1) init grammar and define keywords
 	struct pcdata p = { NULL, 0, NULL };
 	init_grammar(&p);
-	addsym(&p, "like", &eval_like);
-	addsym(&p, "comment", &eval_comment);
-	addsym(&p, "follow", &eval_follow);
+	add_keyword(&p, "like", &eval_like);
+	add_keyword(&p, "comment", &eval_comment);
+	add_keyword(&p, "follow", &eval_follow);
 
 	// 2) prepare user data
 	struct user_score u1={2,3,4};

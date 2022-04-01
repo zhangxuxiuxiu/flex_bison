@@ -136,14 +136,18 @@ void free_ast(struct pcdata *, struct ast *);
 void yyerror(struct pcdata *pp, char *s, ...);
 
 /* client api */
-#define DEFINE_EVAL_FN(FnName, BizType) 			\
-	double FnName##convert(void* vfn, void* vu){		\
+#define EVAL_DEFINE_FN(EvalFn, KeywordFn, BizType) 		\
+	double EvalFn##_convert(void* vfn, void* vu){		\
 	double (*fn)(BizType*) = (double (*)(BizType*))(vfn);	\
 	BizType* u = (BizType*)(vu);				\
 	return (*fn)(u);					\
 }								\
-double FnName(struct pcdata *pp, struct ast *a, BizType* u){	\
-	return eval(pp, a, u, &FnName##convert);		\
+double EvalFn(struct pcdata *pp, struct ast *a, BizType* u){	\
+	return eval(pp, a, u, &EvalFn##_convert);		\
+}								\
+struct symbol * KeywordFn(struct pcdata *pp,		\
+	const char* sym, double (*fn)(BizType*)){ 		\
+	return addsym(pp, sym, fn);				\
 }
 
 int init_grammar(struct pcdata*);
