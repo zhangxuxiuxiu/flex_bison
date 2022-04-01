@@ -4,3 +4,4 @@ grammar.lex.h
 grammar.lex.c
 grammar.c
 eval
+*.swp
