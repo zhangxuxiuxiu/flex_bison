@@ -1,7 +1,7 @@
-eval: grammar.y grammar.l ast.c ast.h main.c
+eval: grammar.y grammar.l ast.c ast.h main.cpp
 	bison -d grammar.y
 	flex -ogrammar.lex.c grammar.l  
-	cc grammar.lex.c ast.c grammar.tab.c main.c -ll -DYYERROR_VERBOSE=1 -o eval
+	g++ -std=c++11 grammar.lex.c ast.c grammar.tab.c main.cpp -ll -DYYERROR_VERBOSE=1 -o eval -Wno-deprecated-register
 
 clean: 
 	-rm grammar.tab.{c,h} grammar.lex.{c,h} eval

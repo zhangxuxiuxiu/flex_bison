@@ -11,7 +11,7 @@
 EXP ([Ee][-+]?[0-9]+)
 %%
 %{
- struct pcdata *pp = yyextra;
+ struct pcdata *pp = (struct pcdata *)yyextra;
 %}
  /* single character ops */
 "+" |

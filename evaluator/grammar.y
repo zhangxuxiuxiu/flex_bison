@@ -92,7 +92,7 @@ int init_grammar(struct pcdata* p){
 		perror("init alloc failed");
 		return 1;
 	}
-	if(!(p->symtab = calloc(NHASH, sizeof(struct symbol)))) {
+	if(!(p->symtab = (struct symbol*)calloc(NHASH, sizeof(struct symbol)))) {
 		perror("sym alloc failed");
 		return 2;
 	}
@@ -117,7 +117,7 @@ void free_grammar(struct pcdata* p){
 	free(p->symtab);
 }
 
-void yyerror(struct pcdata *pp, char *s, ...)
+void yyerror(struct pcdata *pp,const char *s, ...)
 {
 	va_list ap;
 	va_start(ap, s);

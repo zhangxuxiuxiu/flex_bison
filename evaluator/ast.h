@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+ 
 /*
  * Declarations for a calculator, pure version
  */
@@ -133,7 +137,7 @@ void free_symbol(struct pcdata*, struct symbol*);
 void free_ast(struct pcdata *, struct ast *);
 
 /* interface to the scanner */
-void yyerror(struct pcdata *pp, char *s, ...);
+void yyerror(struct pcdata *pp, const char *s, ...);
 
 /* client api */
 #define EVAL_DEFINE_FN(EvalFn, KeywordFn, BizType) 		\
@@ -146,8 +150,8 @@ double EvalFn(struct pcdata *pp, struct ast *a, BizType* u){	\
 	return eval(pp, a, u, &EvalFn##_convert);		\
 }								\
 struct symbol * KeywordFn(struct pcdata *pp,		\
-	const char* sym, double (*fn)(BizType*)){ 		\
-	return addsym(pp, sym, fn);				\
+	const char* sym, double (*fn)(BizType*)){ 	\
+	return addsym(pp, sym, (void *)fn);		\
 }
 
 int init_grammar(struct pcdata*);
@@ -156,4 +160,7 @@ struct symbol * addsym(struct pcdata *pp,const char* sym, void*);
 void free_grammar(struct pcdata* p);
 
 /* keyword function*/
-
+#ifdef __cplusplus
+}
+#endif
+ 

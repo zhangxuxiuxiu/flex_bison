@@ -51,7 +51,7 @@ struct symbol * addsym(struct pcdata *pp,const char* sym, void *fp)
 	struct ast *
 newast(struct pcdata *pp, int nodetype, struct ast *l, struct ast *r)
 {
-	struct ast *a = malloc(sizeof(struct ast));
+	struct ast *a = (struct ast *)malloc(sizeof(struct ast));
 	if(!a) {
 		yyerror(pp, "out of space");
 		exit(0);
@@ -65,7 +65,7 @@ newast(struct pcdata *pp, int nodetype, struct ast *l, struct ast *r)
 	struct ast *
 newnum(struct pcdata *pp, double d)
 {
-	struct numval *a = malloc(sizeof(struct numval));
+	struct numval *a = (struct numval *)malloc(sizeof(struct numval));
 	if(!a) {
 		yyerror(pp, "out of space");
 		exit(0);
@@ -78,7 +78,7 @@ newnum(struct pcdata *pp, double d)
 	struct ast *
 newfptr(struct pcdata *pp, void*p)
 {
-	struct fnptr *a = malloc(sizeof(struct fnptr));
+	struct fnptr *a = (struct fnptr *)malloc(sizeof(struct fnptr));
 	if(!a) {
 		yyerror(pp, "out of space");
 		exit(0);
@@ -91,7 +91,7 @@ newfptr(struct pcdata *pp, void*p)
 	struct ast *
 newcmp(struct pcdata *pp, int cmptype, struct ast *l, struct ast *r)
 {
-	struct ast *a = malloc(sizeof(struct ast));
+	struct ast *a = (struct ast *)malloc(sizeof(struct ast));
 	if(!a) {
 		yyerror(pp, "out of space");
 		exit(0);
@@ -105,21 +105,21 @@ newcmp(struct pcdata *pp, int cmptype, struct ast *l, struct ast *r)
 	struct ast *
 newfunc(struct pcdata *pp, int functype, struct ast *l)
 {
-	struct fncall *a = malloc(sizeof(struct fncall));
+	struct fncall *a = (struct fncall *)malloc(sizeof(struct fncall));
 	if(!a) {
 		yyerror(pp, "out of space");
 		exit(0);
 	}
 	a->nodetype = 'F';
 	a->l = l;
-	a->functype = functype;
+	a->functype = (bifs)functype;
 	return (struct ast *)a;
 }
 
 	struct ast *
 newcall(struct pcdata *pp, struct symbol *s, struct ast *l)
 {
-	struct ufncall *a = malloc(sizeof(struct ufncall));
+	struct ufncall *a =(struct ufncall *)malloc(sizeof(struct ufncall));
 	if(!a) {
 		yyerror(pp, "out of space");
 		exit(0);
@@ -133,7 +133,7 @@ newcall(struct pcdata *pp, struct symbol *s, struct ast *l)
 	struct ast *
 newref(struct pcdata *pp, struct symbol *s)
 {
-	struct symref *a = malloc(sizeof(struct symref));
+	struct symref *a = (struct symref *)malloc(sizeof(struct symref));
 	if(!a) {
 		yyerror(pp, "out of space");
 		exit(0);
@@ -146,7 +146,7 @@ newref(struct pcdata *pp, struct symbol *s)
 	struct ast *
 newasgn(struct pcdata *pp, struct symbol *s, struct ast *v)
 {
-	struct symasgn *a = malloc(sizeof(struct symasgn));
+	struct symasgn *a = (struct symasgn *)malloc(sizeof(struct symasgn));
 	if(!a) {
 		yyerror(pp, "out of space");
 		exit(0);
@@ -160,7 +160,7 @@ newasgn(struct pcdata *pp, struct symbol *s, struct ast *v)
 	struct ast *
 newflow(struct pcdata *pp, int nodetype, struct ast *cond, struct ast *tl, struct ast *el)
 {
-	struct flow *a = malloc(sizeof(struct flow));
+	struct flow *a = (struct flow *)malloc(sizeof(struct flow));
 	if(!a) {
 		yyerror(pp, "out of space");
 		exit(0);
@@ -175,7 +175,7 @@ newflow(struct pcdata *pp, int nodetype, struct ast *cond, struct ast *tl, struc
 	struct symlist *
 newsymlist(struct pcdata *pp, struct symbol *sym, struct symlist *next)
 {
-	struct symlist *sl = malloc(sizeof(struct symlist));
+	struct symlist *sl = (struct symlist *)malloc(sizeof(struct symlist));
 	if(!sl) {
 		yyerror(pp, "out of space");
 		exit(0);
